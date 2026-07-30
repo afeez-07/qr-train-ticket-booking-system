@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QR Train Booking</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- AUTH SECTION -->
+<div id="authSection" class="center-screen">
+
+    <div class="auth-card">
+        <h2 id="authTitle">Login</h2>
+
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+
+        <button type="button" id="authBtn" onclick="handleAuth()">Login</button>
+        <button class="admin-btn" onclick="openAdminLogin()">Admin Login</button>
+
+        <p id="authMsg"></p>
+
+        <p class="switch-link" onclick="toggleAuth()">
+            Don't have an account? Register
+        </p>
+    </div>
+
+</div>
+
+<!-- ADMIN LOGIN PAGE -->
+
+<div id="adminLoginPage" class="center-screen hidden">
+
+    <div class="auth-card">
+
+        <h2>Admin Login</h2>
+        <input id="adminUser" placeholder="Admin Username">
+        <input id="adminPass" type="password" placeholder="Admin Password">
+        <button onclick="checkAdmin()">Login</button>
+        <button onclick="backToUserLogin()">Back</button>
+        <p id="adminLoginMsg"></p>
+
+    </div>
+
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="hidden">
+
+    <!-- Dashboard Menu -->
+    <div id="mainMenu" class="menu-card">
+        <h2>Dashboard</h2>
+
+        <button onclick="showSection('searchSection')">Train Search</button>
+        <button onclick="showSection('bookingSection')">Book Ticket</button>
+        <button onclick="showSection('cancelSection')">Cancel Ticket</button>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <!-- SEARCH -->
+    <div id="searchSection" class="card hidden">
+        <h3>Search Trains</h3>
+        <input id="source" placeholder="Source">
+        <input id="destination" placeholder="Destination">
+        <button onclick="searchTrains()">Search</button>
+        <div id="trainResults"></div>
+        <button onclick="goHome()">Back</button>
+    </div>
+
+    <!-- BOOK -->
+    <div id="bookingSection" class="card hidden">
+        <h3>Book Ticket</h3>
+        <div id="bookingTrainTable"></div>
+        <input id="passengerName" placeholder="Passenger Name">
+        <input id="passengerAge" placeholder="Passenger Age">
+        <input id="trainId" placeholder="Train ID">
+        <input id="seats" placeholder="Seats">
+        <button onclick="makePayment()">Proceed to Payment</button>
+        <p id="bookingMsg"></p>
+        <img id="qrImage" width="200">
+        <button id="downloadBtn" onclick="downloadPDF()" class="hidden">
+            Download PDF
+        </button>
+        <button onclick="goHome()">Back</button>
+    </div>
+
+    <!-- CANCEL -->
+    <div id="cancelSection" class="card hidden">
+        <h3>Cancel Ticket</h3>
+        <input id="cancelTicketId" placeholder="Ticket ID">
+        <button onclick="cancelTicket()">Cancel Ticket</button>
+        <p id="cancelMsg"></p>
+        <button onclick="goHome()">Back</button>
+    </div>
+
+    <!-- ADMIN -->
+    <div id="adminSection" class="card hidden">
+
+        <!-- REAL ADMIN PANEL -->
+        <div id="adminPanel" class="hidden">
+
+            <h3>Admin Panel</h3>
+
+            <div class="admin-actions">
+                <button onclick="loadAllTrains()">View Trains</button>
+                <button onclick="loadAllTickets()">View Tickets</button>
+            </div>
+
+            <h4>Add Train</h4>
+
+            <input id="adminTrainName" placeholder="Train Name">
+            <input id="adminSource" placeholder="Source">
+            <input id="adminDestination" placeholder="Destination">
+            <input id="adminFare" placeholder="Fare">
+            <input id="adminSeats" placeholder="Seats">
+
+            <button onclick="addTrain()">Add Train</button>
+
+            <!-- ADMIN DATA TABLE -->
+            <div id="adminData"></div>
+
+        </div>
+
+        <button onclick="backToUserLogin()">Back</button>
+
+    </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
