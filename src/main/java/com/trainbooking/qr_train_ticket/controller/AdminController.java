@@ -45,8 +45,21 @@ public class AdminController {
     // ADD TRAIN
     // =========================
     @PostMapping("/add-train")
-    public Train addTrain(@RequestBody Train train) {
-        return trainRepo.save(train);
+    public ResponseEntity<?> addTrain(@RequestBody Train train) {
+
+        if (train.getTrainNumber() == null || train.getTrainNumber().trim().isEmpty()
+                || train.getTrainName() == null || train.getTrainName().trim().isEmpty()
+                || train.getSource() == null || train.getSource().trim().isEmpty()
+                || train.getDestination() == null || train.getDestination().trim().isEmpty()
+                || train.getDepartureTime() == null || train.getDepartureTime().trim().isEmpty()
+                || train.getArrivalTime() == null || train.getArrivalTime().trim().isEmpty()
+                || train.getFare() <= 0
+                || train.getAvailableSeats() <= 0) {
+
+            return ResponseEntity.badRequest().body("Please fill all fields correctly.");
+        }
+
+        return ResponseEntity.ok(trainRepo.save(train));
     }
 
     // =========================
@@ -87,10 +100,11 @@ public class AdminController {
             Map<String,Object> map = new HashMap<>();
 
             map.put("id", t.getId());
+            map.put("ticketNumber", t.getTicketNumber());
             map.put("passengerName", t.getPassengerName());
             map.put("passengerAge", t.getPassengerAge());
             map.put("trainName", train != null ? train.getTrainName() : "Unknown");
-            map.put("trainId", t.getTrainId());
+            map.put("trainNumber", train != null ? train.getTrainNumber() : "Undefined");
             map.put("seatsBooked", t.getSeatsBooked());
             map.put("totalFare", t.getTotalFare());
 

@@ -58,10 +58,18 @@ public class TicketController {
     }
 
     /* ================= TICKET CANCEL ================= */
-    @DeleteMapping("/cancel/{ticketId}")
-    public String cancelTicket(@PathVariable Long ticketId) {
+    @DeleteMapping("/cancel/{ticketNumber}")
+    public ResponseEntity<String> cancelTicket(@PathVariable String ticketNumber) {
 
-        ticketService.cancelTicket(ticketId);
-        return "Ticket Cancelled Successfully";
+        try {
+
+            ticketService.cancelTicket(ticketNumber);
+            return ResponseEntity.ok("Ticket Cancelled Successfully");
+
+        } catch (RuntimeException e) {
+
+            return ResponseEntity.badRequest().body(e.getMessage());
+
+        }
     }
 }

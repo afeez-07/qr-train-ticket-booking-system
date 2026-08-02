@@ -14,12 +14,16 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
+import java.time.LocalDateTime;
 
 @Service
 public class TicketService {
 
     private final TicketRepository ticketRepo;
     private final TrainRepository trainRepo;
+
+    private final Random random = new Random();
 
     public TicketService(TicketRepository ticketRepo, TrainRepository trainRepo) {
         this.ticketRepo = ticketRepo;
@@ -45,12 +49,15 @@ public class TicketService {
         ticket.setPassengerAge(passengerAge);
         ticket.setSeatsBooked(seats);
         ticket.setTotalFare(seats * train.getFare());
+        ticket.setTicketNumber(generateTicketNumber());
+        ticket.setBookingDateTime(LocalDateTime.now());
 
         Ticket savedTicket = ticketRepo.save(ticket);
 
         // ✅ Create custom response
         Map<String, Object> response = new HashMap<>();
         response.put("id", savedTicket.getId());
+        response.put("ticketNumber", savedTicket.getTicketNumber());
         response.put("passengerName", savedTicket.getPassengerName());
         response.put("totalFare", savedTicket.getTotalFare());
         response.put("remainingSeats", train.getAvailableSeats());
@@ -66,16 +73,17 @@ public class TicketService {
             Train train = trainRepo.findById(t.getTrainId()).orElseThrow();
 
             String text =
-                    "QR Train Ticket" +
-                            "\n----------------------" +
-                            "\nTicket ID : " + t.getId() +
-                            "\nPassenger : " + t.getPassengerName() +
-                            "\nAge : " + t.getPassengerAge() +
-                            "\nTrain Name : " + train.getTrainName() +
-                            "\nSource : " + train.getSource() +
-                            "\nDestination : " + train.getDestination() +
-                            "\nSeats Booked : " + t.getSeatsBooked() +
-                            "\nTotal Fare : Rs " + t.getTotalFare();
+                    "QR Train Ticket\n" +
+                            "----------------------\n" +
+                            "Ticket No : " + t.getTicketNumber() + "\n" +
+                            "Train No : " + train.getTrainNumber() + "\n" +
+                            "Passenger : " + t.getPassengerName() + "\n" +
+                            "Passenger Age : " + t.getPassengerAge() + "\n" +
+                            "Train Name : " + train.getTrainName() + "\n" +
+                            "Source : " + train.getSource() + "\n" +
+                            "Destination : " + train.getDestination() + "\n" +
+                            "Seats Booked : " + t.getSeatsBooked() + "\n" +
+                            "Total Fare : Rs. " + (int) t.getTotalFare();
 
             QRCodeWriter writer = new QRCodeWriter();
             BitMatrix matrix = writer.encode(text, BarcodeFormat.QR_CODE, 200, 200);
@@ -98,10 +106,23 @@ public class TicketService {
         }
     }
 
-    // ⭐ CANCEL TICKET
-    public void cancelTicket(Long ticketId) {
+    // GENERATE TICKET NUMBER
+    private String generateTicketNumber() {
 
-        Ticket ticket = ticketRepo.findById(ticketId)
+        String ticketNumber;
+
+        do {
+            int number = 1000 + random.nextInt(9000);
+            ticketNumber = "TKT" + number;
+        } while (ticketRepo.existsByTicketNumber(ticketNumber));
+
+        return ticketNumber;
+    }
+
+    // CANCEL TICKET
+    public void cancelTicket(String ticketNumber) {
+
+        Ticket ticket = ticketRepo.findByTicketNumber(ticketNumber)
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
 
         Train train = trainRepo.findById(ticket.getTrainId())

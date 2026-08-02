@@ -10,6 +10,8 @@ public class Train {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
+    private String trainNumber;
     private String trainName;
     private String source;
     private String destination;
@@ -17,10 +19,13 @@ public class Train {
     private String arrivalTime;
     private int fare;
 
-    @Column(name = "available_seats")   // ⭐ ADD THIS
+    @Column(name = "available_seats")
     private int availableSeats;
 
     public Long getId(){ return id; }
+
+    public String getTrainNumber() { return trainNumber; }
+    public void setTrainNumber(String trainNumber) { this.trainNumber = trainNumber; }
 
     public String getTrainName(){ return trainName; }
     public void setTrainName(String trainName){ this.trainName=trainName; }

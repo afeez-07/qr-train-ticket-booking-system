@@ -74,9 +74,14 @@
         <div id="bookingTrainTable"></div>
         <input id="passengerName" placeholder="Passenger Name">
         <input id="passengerAge" placeholder="Passenger Age">
-        <input id="trainId" placeholder="Train ID">
+        <input type="hidden" id="trainId">
+        <p id="selectedTrain">
+            <strong>Selected Train:</strong> None
+        </p>
         <input id="seats" placeholder="Seats">
-        <button onclick="makePayment()">Proceed to Payment</button>
+        <button id="paymentBtn" onclick="makePayment()">
+            Proceed to Payment
+        </button>
         <p id="bookingMsg"></p>
         <img id="qrImage" width="200">
         <button id="downloadBtn" onclick="downloadPDF()" class="hidden">
@@ -88,7 +93,7 @@
     <!-- CANCEL -->
     <div id="cancelSection" class="card hidden">
         <h3>Cancel Ticket</h3>
-        <input id="cancelTicketId" placeholder="Ticket ID">
+        <input id="cancelTicketNumber" placeholder="Ticket Number (Ex: TKT4832)">
         <button onclick="cancelTicket()">Cancel Ticket</button>
         <p id="cancelMsg"></p>
         <button onclick="goHome()">Back</button>
@@ -109,9 +114,14 @@
 
             <h4>Add Train</h4>
 
+            <input id="adminTrainNumber" placeholder="Train Number (Ex: CH1005)">
             <input id="adminTrainName" placeholder="Train Name">
             <input id="adminSource" placeholder="Source">
             <input id="adminDestination" placeholder="Destination">
+            <label>Departure Time</label>
+            <input type="time" id="adminDepartureTime">
+            <label>Arrival Time</label>
+            <input type="time" id="adminArrivalTime">
             <input id="adminFare" placeholder="Fare">
             <input id="adminSeats" placeholder="Seats">
 

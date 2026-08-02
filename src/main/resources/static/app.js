@@ -53,6 +53,7 @@ function handleAuth(event) {
 
     if(!username || !password)
     {
+       document.getElementById("authMsg").style.color = "red";
        document.getElementById("authMsg").innerText = "Enter username and password";
        return;
     }
@@ -65,10 +66,7 @@ function handleAuth(event) {
         body:JSON.stringify({username,password})
     })
 
-    .then(res=>{
-        if(!res.ok) throw new Error();
-        return res.text();
-    })
+    .then(res => res.text())
 
     .then(msg => {
 
@@ -90,21 +88,39 @@ function handleAuth(event) {
 
             } else {
 
+                document.getElementById("authMsg").style.color = "red";
                 document.getElementById("authMsg").innerText = msg;
 
             }
 
         }
 
-        else{
+        else {
 
-            document.getElementById("authMsg").innerText =
-            "Registration successful! Please login.";
+            if (msg === "Registered") {
 
-            toggleAuth();
+                toggleAuth();
+
+                document.getElementById("authMsg").style.color = "green";
+                document.getElementById("authMsg").innerText =
+                    "Registration successful! Please login.";
+
+            } else {
+
+                document.getElementById("authMsg").style.color = "red";
+                document.getElementById("authMsg").innerText = msg;
+
+            }
         }
-
     })
+
+    .catch(err => {
+        console.error(err);
+        document.getElementById("authMsg").style.color = "red";
+        document.getElementById("authMsg").innerText =
+            "Something went wrong. Please try again.";
+    });
+
 }
 
 function openAdminLogin(){
@@ -160,9 +176,18 @@ function logout(){
     // show login
     document.getElementById("authSection").classList.remove("hidden");
 
+    // Always return to Login mode
+    if (!isLogin) {
+        toggleAuth();
+    }
+
     // clear inputs
     document.getElementById("username").value="";
     document.getElementById("password").value="";
+
+    // Clear authentication message
+    document.getElementById("authMsg").innerText = "";
+    document.getElementById("authMsg").style.color = "black";
 }
 
 function showSection(sectionId) {
@@ -198,10 +223,11 @@ function loadAllTrainsForBooking(){
         <table>
         <thead>
         <tr>
-        <th>ID</th>
+        <th>Train No.</th>
         <th>Name</th>
         <th>Source</th>
         <th>Destination</th>
+        <th>Departure Time</th>
         <th>Arrival Time</th>
         <th>Fare</th>
         <th>Seats</th>
@@ -212,11 +238,12 @@ function loadAllTrainsForBooking(){
 
         data.forEach(t => {
             html += `
-            <tr onclick="selectTrain(${t.id}, ${t.fare})">
-            <td>${t.id}</td>
+            <tr onclick="selectTrain(${t.id}, ${t.fare}, '${t.trainNumber}', '${t.trainName}')">
+            <td>${t.trainNumber}</td>
             <td>${t.trainName}</td>
             <td>${t.source}</td>
             <td>${t.destination}</td>
+            <td>${t.departureTime}</td>
             <td>${t.arrivalTime}</td>
             <td>${t.fare}</td>
             <td>${t.availableSeats}</td>
@@ -239,11 +266,17 @@ function loadAllTrainsForBooking(){
     });
 }
 
-function selectTrain(id, fare){
+function selectTrain(id, fare, trainNumber, trainName) {
 
     document.getElementById("trainId").value = id;
 
     selectedTrainFare = fare;
+
+    document.getElementById("selectedTrain").innerHTML =
+        `<strong>Selected Train</strong><br>${trainNumber} - ${trainName}`;
+
+    // ENABLE PAYMENT BUTTON
+    document.getElementById("paymentBtn").disabled = false
 
 }
 
@@ -262,21 +295,32 @@ function goHome() {
 
     document.getElementById("mainMenu").classList.remove("hidden");
 
-    // ⭐ CLEAR BOOKING FORM
+    // CLEAR BOOKING FORM
     document.getElementById("passengerName").value = "";
     document.getElementById("passengerAge").value = "";
     document.getElementById("trainId").value = "";
     document.getElementById("seats").value = "";
+    document.getElementById("selectedTrain").innerHTML =
+        "<strong>Selected Train</strong><br>None";
     selectedTrainFare = 0;
 
-    // ⭐ CLEAR BOOKING RESULT
+    // CLEAR SEARCH FORM
+    document.getElementById("source").value = "";
+    document.getElementById("destination").value = "";
+    document.getElementById("trainResults").innerHTML = "";
+    document.getElementById("bookingTrainTable").innerHTML = "";
+
+    // CLEAR BOOKING RESULT
     document.getElementById("bookingMsg").innerHTML = "";
     document.getElementById("qrImage").src = "";
+    document.getElementById("qrImage").style.display = "none";
 
     // Hide download button
     document.getElementById("downloadBtn").classList.add("hidden");
-    document.getElementById("cancelTicketId").value = "";
+    document.getElementById("cancelTicketNumber").value = "";
     document.getElementById("cancelMsg").innerText = "";
+
+    document.getElementById("paymentBtn").disabled = false;
 }
 
 
@@ -301,10 +345,11 @@ function searchTrains() {
         <table>
         <thead>
         <tr>
-        <th>ID</th>
+        <th>Train No.</th>
         <th>Train Name</th>
         <th>Source</th>
         <th>Destination</th>
+        <th>Departure Time</th>
         <th>Arrival Time</th>
         <th>Fare (₹)</th>
         <th>Available Seats</th>
@@ -315,11 +360,12 @@ function searchTrains() {
 
         data.forEach(t => {
         html += `
-        <tr onclick="selectTrain(${t.id}, ${t.fare}); showSection('bookingSection')">
-        <td>${t.id}</td>
+        <tr onclick="selectTrain(${t.id}, ${t.fare}, '${t.trainNumber}', '${t.trainName}'); showSection('bookingSection')">
+        <td>${t.trainNumber}</td>
         <td>${t.trainName}</td>
         <td>${t.source}</td>
         <td>${t.destination}</td>
+        <td>${t.departureTime}</td>
         <td>${t.arrivalTime}</td>
         <td>${t.fare}</td>
         <td>${t.availableSeats}</td>
@@ -368,7 +414,8 @@ function makePayment(){
         const totalFare = seatsBooked * train.fare;
 
         const confirmPay = confirm(
-            "Train ID: " + trainId +
+            "Train No: " + train.trainNumber +
+            "\nTrain Name: " + train.trainName +
             "\nSeats: " + seatsBooked +
             "\nPassenger: " + passengerName +
             "\nTotal Fare: ₹" + totalFare +
@@ -415,6 +462,7 @@ function bookTicket() {
 
         bookingMsg.innerHTML =
             "✅ Ticket Booked Successfully <br>" +
+            "Ticket No : " + ticket.ticketNumber + "<br>" +
             "Passenger: " + ticket.passengerName + "<br>" +
             "Total Fare : ₹ " + ticket.totalFare + "<br>" +
             "Remaining Seats : " + ticket.remainingSeats;
@@ -423,8 +471,24 @@ function bookTicket() {
         qrImage.src =
             BASE_URL + "/ticket/qr/" + ticket.id + "?t=" + new Date().getTime();
 
+        document.getElementById("qrImage").style.display = "block";
+
         // SHOW PDF BUTTON
         document.getElementById("downloadBtn").classList.remove("hidden");
+
+        // DISABLE PAYMENT BUTTON
+        document.getElementById("paymentBtn").disabled = true;
+
+        // CLEAR FIELDS
+        document.getElementById("passengerName").value = "";
+        document.getElementById("passengerAge").value = "";
+        document.getElementById("seats").value = "";
+
+        document.getElementById("trainId").value = "";
+        document.getElementById("selectedTrain").innerHTML =
+            "<strong>Selected Train</strong><br>None";
+
+        selectedTrainFare = 0;
     })
 
     .catch(err => {
@@ -432,8 +496,6 @@ function bookTicket() {
         alert("Ticket booking failed");
     });
 }
-
-
 
 /* ================= DOWNLOAD PDF ================= */
 
@@ -473,16 +535,17 @@ function loadAllTrains() {
     .then(data => {
 
         let html = "<table border='1'>";
-        html += "<tr><th>ID</th><th>Name</th><th>Source</th><th>Destination</th><th>Arrival Time</th><th>Fare</th><th>Seats</th><th>Action</th></tr>";
+        html += "<tr><th>Train No.</th><th>Name</th><th>Source</th><th>Destination</th><th>Departure Time</th><th>Arrival Time</th><th>Fare</th><th>Seats</th><th>Action</th></tr>";
 
         data.forEach(train => {
 
             html += `
                 <tr>
-                    <td>${train.id}</td>
+                    <td>${train.trainNumber}</td>
                     <td>${train.trainName}</td>
                     <td>${train.source}</td>
                     <td>${train.destination}</td>
+                    <td>${train.departureTime}</td>
                     <td>${train.arrivalTime}</td>
                     <td>${train.fare}</td>
                     <td>${train.availableSeats}</td>
@@ -521,7 +584,14 @@ function deleteTrain(id) {
 function loadAllTickets(){
 
 fetch(BASE_URL + "/admin/tickets")
-.then(res => res.json())
+.then(res => {
+    if (!res.ok) {
+        return res.text().then(msg => {
+            throw new Error(msg);
+        });
+    }
+    return res.json();
+})
 .then(data => {
 
 let html = `
@@ -531,11 +601,11 @@ let html = `
 <table>
 <thead>
 <tr>
-<th>Ticket ID</th>
+<th>Ticket No.</th>
 <th>Passenger Name</th>
 <th>Passenger Age</th>
 <th>Train Name</th>
-<th>Train ID</th>
+<th>Train No.</th>
 <th>Seats Booked</th>
 <th>Total Fare</th>
 <th>Action</th>
@@ -547,11 +617,11 @@ let html = `
 data.forEach(t => {
 html += `
 <tr>
-<td>${t.id}</td>
+<td>${t.ticketNumber}</td>
 <td>${t.passengerName || "N/A"}</td>
 <td>${t.passengerAge || "-"}</td>
 <td>${t.trainName}</td>
-<td>${t.trainId}</td>
+<td>${t.trainNumber}</td>
 <td>${t.seatsBooked}</td>
 <td>${t.totalFare}</td>
 
@@ -573,22 +643,52 @@ html += `
 
 document.getElementById("adminData").innerHTML = html;
 
+})
+
+.catch(err => {
+    console.error(err);
+    alert(err.message);
 });
+
 }
 
 function addTrain() {
+
+        const trainNumber = document.getElementById("adminTrainNumber").value.trim();
+        const trainName = document.getElementById("adminTrainName").value.trim();
+        const source = document.getElementById("adminSource").value.trim();
+        const destination = document.getElementById("adminDestination").value.trim();
+        const departureTime = document.getElementById("adminDepartureTime").value;
+        const arrivalTime = document.getElementById("adminArrivalTime").value;
+        const fare = document.getElementById("adminFare").value;
+        const seats = document.getElementById("adminSeats").value;
+
+        if (
+            !trainNumber ||
+            !trainName ||
+            !source ||
+            !destination ||
+            !departureTime ||
+            !arrivalTime ||
+            !fare ||
+            !seats
+        ) {
+            alert("Please fill all the fields.");
+            return;
+        }
 
     fetch(BASE_URL + "/admin/add-train", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            trainName: document.getElementById("adminTrainName").value,
-            source: document.getElementById("adminSource").value,
-            destination: document.getElementById("adminDestination").value,
-            departureTime: "06:00",
-            arrivalTime: "12:00",
-            fare: document.getElementById("adminFare").value,
-            availableSeats: document.getElementById("adminSeats").value
+            trainNumber,
+            trainName,
+            source,
+            destination,
+            departureTime,
+            arrivalTime,
+            fare,
+            availableSeats: seats
         })
     })
     .then(res => res.json())
@@ -597,9 +697,12 @@ function addTrain() {
         alert("Train Added Successfully!");
 
         // Clear input fields
+        document.getElementById("adminTrainNumber").value = "";
         document.getElementById("adminTrainName").value = "";
         document.getElementById("adminSource").value = "";
         document.getElementById("adminDestination").value = "";
+        document.getElementById("adminDepartureTime").value = "";
+        document.getElementById("adminArrivalTime").value = "";
         document.getElementById("adminFare").value = "";
         document.getElementById("adminSeats").value = "";
 
@@ -611,21 +714,37 @@ function addTrain() {
 
 function cancelTicket() {
 
-    const id = document.getElementById("cancelTicketId").value;
+    const ticketNumber =
+        document.getElementById("cancelTicketNumber").value.trim();
 
-    if (!id) {
-        alert("Enter Ticket ID");
+    if (!ticketNumber) {
+        alert("Enter Ticket Number");
         return;
     }
 
-    fetch(BASE_URL + "/ticket/cancel/" + id, {
+    fetch(BASE_URL + "/ticket/cancel/" + ticketNumber, {
         method: "DELETE"
     })
-    .then(res => res.text())
-    .then(data => {
-        document.getElementById("cancelMsg").innerText = data;
+    .then(res => {
+        return res.text().then(msg => {
+            if (!res.ok) {
+                throw new Error(msg);
+            }
+            return msg;
+        });
     })
-    .catch(() => alert("Cancel failed"));
+
+    .then(msg => {
+        document.getElementById("cancelMsg").style.color = "green";
+        document.getElementById("cancelMsg").innerText = msg;
+
+        document.getElementById("cancelTicketNumber").value = "";
+    })
+
+    .catch(err => {
+        document.getElementById("cancelMsg").style.color = "red";
+        document.getElementById("cancelMsg").innerText = err.message;
+    });
 }
 
 /* ================= ADMIN LOGIN ================= */

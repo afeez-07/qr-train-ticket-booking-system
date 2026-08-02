@@ -15,6 +15,11 @@ public class AuthController {
 
     @PostMapping("/register")
     public String register(@RequestBody User user){
+
+        if(repo.existsByUsername(user.getUsername())){
+            return "Username already exists";
+        }
+
         repo.save(user);
         return "Registered";
     }

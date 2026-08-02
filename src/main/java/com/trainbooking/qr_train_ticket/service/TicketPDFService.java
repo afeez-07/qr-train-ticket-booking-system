@@ -2,11 +2,15 @@ package com.trainbooking.qr_train_ticket.service;
 
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.PdfWriter;
+import com.lowagie.text.Font;
+import com.lowagie.text.FontFactory;
+import com.lowagie.text.Element;
 import com.trainbooking.qr_train_ticket.model.Ticket;
 import com.trainbooking.qr_train_ticket.model.Train;
 import com.trainbooking.qr_train_ticket.repository.TicketRepository;
 import com.trainbooking.qr_train_ticket.repository.TrainRepository;
 import org.springframework.stereotype.Service;
+import java.time.format.DateTimeFormatter;
 
 import java.io.ByteArrayOutputStream;
 
@@ -41,30 +45,84 @@ public class TicketPDFService {
             // Generate QR
             byte[] qrBytes = ticketService.generateQR(ticketId);
 
-            Document document = new Document();
+            Document document = new Document(PageSize.A5, 30, 30, 30, 30);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
 
             PdfWriter.getInstance(document, out);
             document.open();
 
-            document.add(new Paragraph("TRAIN TICKET"));
-            document.add(new Paragraph("-----------------------------"));
+            Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 20);
+            Font headingFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11);
+            Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 12);
+            Font footerFont = FontFactory.getFont(FontFactory.HELVETICA, 9);
 
-            document.add(new Paragraph("Ticket ID : " + ticket.getId()));
-            document.add(new Paragraph("Train ID : " + train.getId()));
-            document.add(new Paragraph("Passenger Name : " + ticket.getPassengerName()));
-            document.add(new Paragraph("Passenger Age : " + ticket.getPassengerAge()));
-            document.add(new Paragraph("Train Name : " + train.getTrainName()));
-            document.add(new Paragraph("Source : " + train.getSource()));
-            document.add(new Paragraph("Destination : " + train.getDestination()));
-            document.add(new Paragraph("Seats Booked : " + ticket.getSeatsBooked()));
-            document.add(new Paragraph("Total Fare : ₹ " + ticket.getTotalFare()));
+            Paragraph title = new Paragraph("TRAIN TICKET", titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            document.add(title);
+            Paragraph line = new Paragraph("--------------------------", normalFont);
+            line.setAlignment(Element.ALIGN_CENTER);
+            document.add(line);
+            document.add(new Paragraph(" "));
+            document.add(new Paragraph("Ticket No : " + ticket.getTicketNumber(), headingFont));
+            document.add(new Paragraph("Train No : " + train.getTrainNumber(), headingFont));
+            DateTimeFormatter formatter =
+                    DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm a");
 
-            document.add(new Paragraph("\nQR Code:\n"));
+            String bookingDate =
+                    ticket.getBookingDateTime().format(formatter);
+
+            document.add(new Paragraph(
+                    "Booking Date : " + bookingDate,
+                    headingFont));
+
+            document.add(new Paragraph(" "));
+            document.add(new Paragraph("Passenger Name : " + ticket.getPassengerName(), headingFont));
+            document.add(new Paragraph("Passenger Age : " + ticket.getPassengerAge(), headingFont));
+
+            document.add(new Paragraph(" "));
+
+            document.add(new Paragraph(
+                    "Train Name : " + train.getTrainName(),
+                    headingFont));
+
+            document.add(new Paragraph(
+                    "Source : " + train.getSource(),
+                    headingFont));
+
+            document.add(new Paragraph(
+                    "Destination : " + train.getDestination(),
+                    headingFont));
+
+            document.add(new Paragraph(
+                    "Departure Time : " + train.getDepartureTime(),
+                    headingFont));
+
+            document.add(new Paragraph(
+                    "Arrival Time : " + train.getArrivalTime(),
+                    headingFont));
+
+            document.add(new Paragraph("Seats Booked : " + ticket.getSeatsBooked(), headingFont));
+            document.add(new Paragraph("Total Fare : ₹ " + (int) ticket.getTotalFare(), headingFont));
+
+            document.add(new Paragraph(" "));
+            Paragraph qrTitle = new Paragraph("QR CODE", headingFont);
+            qrTitle.setAlignment(Element.ALIGN_CENTER);
+            document.add(qrTitle);
 
             Image qrImage = Image.getInstance(qrBytes);
-            qrImage.scaleAbsolute(150, 150);
+            qrImage.scaleAbsolute(130, 130);
+            qrImage.setAlignment(Element.ALIGN_CENTER);
+
             document.add(qrImage);
+
+            Paragraph footer = new Paragraph(
+                    "Generated by QR Train Ticket Booking System",
+                    footerFont);
+
+            footer.setAlignment(Element.ALIGN_CENTER);
+            footer.setSpacingBefore(8);
+
+            document.add(footer);
 
             document.close();
 
