@@ -137,4 +137,23 @@ public class TicketService {
 
         ticketRepo.delete(ticket);
     }
+
+    public void deleteTicket(String ticketNumber){
+
+        Ticket ticket = ticketRepo.findByTicketNumber(ticketNumber)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+
+        Train train = trainRepo.findById(ticket.getTrainId())
+                .orElseThrow(() -> new RuntimeException("Train not found"));
+
+        // Restore seats
+        train.setAvailableSeats(
+                train.getAvailableSeats() + ticket.getSeatsBooked()
+        );
+
+        trainRepo.save(train);
+
+        ticketRepo.delete(ticket);
+
+    }
 }

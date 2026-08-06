@@ -627,9 +627,15 @@ html += `
 <td>${t.totalFare}</td>
 
 <td>
-<button class="admin-download" onclick="downloadAdminPDF(${t.id})">
-Download PDF
-</button>
+    <button class="admin-download"
+        onclick="downloadAdminPDF(${t.id})">
+        Download
+    </button>
+
+    <button class="delete-ticket-btn"
+        onclick="confirmDeleteTicket('${t.ticketNumber}')">
+        Delete
+    </button>
 </td>
 
 </tr>
@@ -781,4 +787,25 @@ function downloadAdminPDF(ticketId){
         "_blank"
     );
 
+}
+
+function confirmDeleteTicket(ticketNumber){
+
+    const confirmDelete = confirm(
+        `Do you want to delete ticket "${ticketNumber}" ?`
+    );
+
+    if(confirmDelete){
+        fetch(BASE_URL + "/admin/delete-ticket/" + ticketNumber,{
+            method:"DELETE"
+        })
+        .then(res => res.text())
+        .then(msg=>{
+            alert(msg);
+            loadAllTickets();
+        })
+        .catch(()=>{
+            alert("Unable to delete ticket");
+        });
+    }
 }

@@ -390,6 +390,22 @@ border-radius:6px;
 cursor:pointer;
 }
 
+.delete-ticket-btn{
+
+    background:#ff4d4d;
+    color:white;
+    border:none;
+    padding:6px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    margin-top:5px;
+
+}
+
+.delete-ticket-btn:hover{
+    background:#d93636;
+}
+
 #bookingMsg{
     margin-top:20px;
 }

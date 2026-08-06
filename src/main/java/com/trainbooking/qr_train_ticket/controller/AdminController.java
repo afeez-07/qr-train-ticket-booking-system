@@ -2,6 +2,7 @@ package com.trainbooking.qr_train_ticket.controller;
 
 import com.trainbooking.qr_train_ticket.model.Ticket;
 import com.trainbooking.qr_train_ticket.model.Train;
+import com.trainbooking.qr_train_ticket.service.TicketService;
 import com.trainbooking.qr_train_ticket.repository.TicketRepository;
 import com.trainbooking.qr_train_ticket.repository.TrainRepository;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +20,14 @@ public class AdminController {
 
     private final TrainRepository trainRepo;
     private final TicketRepository ticketRepo;
+    private final TicketService ticketService;
 
     public AdminController(TrainRepository trainRepo,
-                           TicketRepository ticketRepo) {
+                           TicketRepository ticketRepo,
+                           TicketService ticketService) {
         this.trainRepo = trainRepo;
         this.ticketRepo = ticketRepo;
+        this.ticketService = ticketService;
     }
 
     // =========================
@@ -82,6 +86,19 @@ public class AdminController {
 
         trainRepo.deleteById(id);
         return ResponseEntity.ok("Train deleted successfully");
+    }
+
+    // =========================
+    // DELETE TICKET
+    // =========================
+
+    @DeleteMapping("/delete-ticket/{ticketNumber}")
+    public ResponseEntity<String> deleteTicket(
+            @PathVariable String ticketNumber){
+
+        ticketService.deleteTicket(ticketNumber);
+
+        return ResponseEntity.ok("Ticket deleted successfully");
     }
 
     // =========================
